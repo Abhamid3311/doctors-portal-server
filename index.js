@@ -20,12 +20,25 @@ async function run() {
         await client.connect();
         const serviceCollection = client.db("doctors_portal").collection("services");
         const bookingCollection = client.db("doctors_portal").collection("bookings");
-
+        const userCollection = client.db("doctors_portal").collection("users");
+        //GET SERVICES
         app.get('/service', async (req, res) => {
             const query = {};
             const cursor = serviceCollection.find(query);
             const services = await cursor.toArray();
             res.send(services);
+        });
+        //PUT USER COLLECTION
+        app.put('/user/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = req.body;
+            const filter = { email: email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: user,
+            };
+            const result = await userCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
         });
 
         //This is not the proper way to query
@@ -50,7 +63,7 @@ async function run() {
                 service.slots = available;
             });
             res.send(services);
-        })
+        });
 
         /**
          * API Naming Convention
@@ -58,15 +71,19 @@ async function run() {
          * app.get('/booking/:id') //get a specific booking.
          *  app.post('/booking/:id') // add a booking.
          *  app.patch('/booking/:id') //update a booking.
+         *  app.put('/booking/:id') //Upsert=> update(if exist)+ insert(if doesn't exist)
          *  app.delete('/booking/:id') // delete a api.
          **/
 
+
+        //GET BOOKING COLLECTIONS
         app.get('/booking', async (req, res) => {
             const patient = req.query.patient;
             const query = { patient: patient };
             const bookings = await bookingCollection.find(query).toArray();
             res.send(bookings);
-        })
+        });
+        //POST BOOKING
         app.post('/booking', async (req, res) => {
             const booking = req.body;
             const query = { treatment: booking.treatment, date: booking.date, patient: booking.patient };
