@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion } = require('mongodb');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -38,7 +39,8 @@ async function run() {
                 $set: user,
             };
             const result = await userCollection.updateOne(filter, updateDoc, options);
-            res.send(result);
+            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+            res.send({ result, token });
         });
 
         //This is not the proper way to query
@@ -64,16 +66,6 @@ async function run() {
             });
             res.send(services);
         });
-
-        /**
-         * API Naming Convention
-         * app.get('/booking') //get all boking of this collection or get more than one or get by filter query.
-         * app.get('/booking/:id') //get a specific booking.
-         *  app.post('/booking/:id') // add a booking.
-         *  app.patch('/booking/:id') //update a booking.
-         *  app.put('/booking/:id') //Upsert=> update(if exist)+ insert(if doesn't exist)
-         *  app.delete('/booking/:id') // delete a api.
-         **/
 
 
         //GET BOOKING COLLECTIONS
@@ -110,3 +102,14 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
     console.log(`Doctors portal listening on port ${port}`)
 });
+
+
+/**
+         * API Naming Convention
+         * app.get('/booking') //get all boking of this collection or get more than one or get by filter query.
+         * app.get('/booking/:id') //get a specific booking.
+         *  app.post('/booking/:id') // add a booking.
+         *  app.patch('/booking/:id') //update a booking.
+         *  app.put('/booking/:id') //Upsert=> update(if exist)+ insert(if doesn't exist)
+         *  app.delete('/booking/:id') // delete a api.
+         **/
