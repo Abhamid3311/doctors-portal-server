@@ -23,12 +23,13 @@ function verifyJWT(req, res, next) {
     const token = authHeader.split(' ')[1];
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
         if (err) {
-            return res.status(403).send({ message: "Forbidden Access" });
+            return res.status(403).send({ message: "Forbidden Access" })
         }
         req.decoded = decoded;
         next();
     });
-};
+}
+
 
 
 async function run() {
@@ -49,16 +50,30 @@ async function run() {
             const users = await userCollection.find().toArray();
             res.send(users);
         });
+        //Get Admin
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = await userCollection.findOne({ email: email });
+            const isAdmin = user.role === "admin";
+            res.send({ admin: isAdmin });
+        });
 
         //PUT Admin COLLECTION
         app.put('/user/admin/:email', async (req, res) => {
             const email = req.params.email;
-            const filter = { email: email };
-            const updateDoc = {
-                $set: { role: "admin" },
-            };
-            const result = await userCollection.updateOne(filter, updateDoc);
-            res.send(result);
+            const requester = req.decoded.email;
+            const requeserAccount = await userCollection.findOne({ email: requester });
+            if (requeserAccount.role === "admin") {
+                const filter = { email: email };
+                const updateDoc = {
+                    $set: { role: "admin" },
+                };
+                const result = await userCollection.updateOne(filter, updateDoc);
+                res.send(result);
+            } else {
+                return res.status(403).send({ message: "Forbidden Access" });
+            }
+
         });
 
         //PUT USER COLLECTION
