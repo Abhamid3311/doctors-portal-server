@@ -59,11 +59,7 @@ async function run() {
             const services = await cursor.toArray();
             res.send(services);
         });
-        //Get Users
-        app.get('/user', verifyJWT, async (req, res) => {
-            const users = await userCollection.find().toArray();
-            res.send(users);
-        });
+
         //Get Admin
         app.get('/admin/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
@@ -83,6 +79,12 @@ async function run() {
             res.send(result);
         });
 
+        //Get Users
+        app.get('/user', verifyJWT, async (req, res) => {
+            const users = await userCollection.find().toArray();
+            res.send(users);
+        });
+
         //PUT USER COLLECTION
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
@@ -93,7 +95,7 @@ async function run() {
                 $set: user,
             };
             const result = await userCollection.updateOne(filter, updateDoc, options);
-            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
             res.send({ result, token });
         });
 
