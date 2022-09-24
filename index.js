@@ -40,6 +40,7 @@ async function run() {
     try {
         await client.connect();
         const serviceCollection = client.db("doctors_portal").collection("services");
+        const reviewCollection = client.db("doctors_portal").collection("reviews");
         const bookingCollection = client.db("doctors_portal").collection("bookings");
         const userCollection = client.db("doctors_portal").collection("users");
         const doctorsCollection = client.db("doctors_portal").collection("doctors");
@@ -69,7 +70,6 @@ async function run() {
             });
             res.send({ clientSecret: paymentIntent.client_secret });
 
-
         });
 
         //GET SERVICES
@@ -79,6 +79,26 @@ async function run() {
             const services = await cursor.toArray();
             res.send(services);
         });
+
+
+
+        //Get Reviews
+        app.get('/review', verifyJWT, async (req, res) => {
+            const query = {};
+            const cursor = reviewCollection.find(query);
+            const reviews = await cursor.toArray();
+            res.send(reviews);
+        });
+        
+        //Post Review
+        app.post('/review', verifyJWT, async (req, res) => {
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review);
+            res.send(result);
+        });
+
+
+
 
         //Get Admin
         app.get('/admin/:email', verifyJWT, async (req, res) => {
@@ -99,7 +119,10 @@ async function run() {
             res.send(result);
         });
 
-        //Get Users
+
+
+
+        //Get ALL Users
         app.get('/user', verifyJWT, async (req, res) => {
             const users = await userCollection.find().toArray();
             res.send(users);
@@ -118,6 +141,18 @@ async function run() {
             const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
             res.send({ result, token });
         });
+
+        //Delete User
+        app.delete('/user/:email', verifyJWT, verifyAdmin, async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const deleteUser = await userCollection.deleteOne(filter);
+            res.send(deleteUser);
+        });
+
+
+
+
 
         //This is not the proper way to query
         //after learning more about Mongodb.use aggregate lookup,pipeline,match,group.
@@ -142,6 +177,8 @@ async function run() {
             });
             res.send(services);
         });
+
+
 
 
         //GET BOOKING COLLECTIONS
@@ -194,6 +231,10 @@ async function run() {
             res.send(updatedDoc);
         });
 
+
+
+
+
         //POST Doctor
         app.post('/doctor', verifyJWT, verifyAdmin, async (req, res) => {
             const doctor = req.body;
@@ -207,7 +248,7 @@ async function run() {
             res.send(doctors);
         });
 
-        //Delete DOCTORS
+        //Delete DOCTOR
         app.delete('/doctor/:email', verifyJWT, verifyAdmin, async (req, res) => {
             const email = req.params.email;
             const filter = { email: email };
@@ -223,6 +264,8 @@ async function run() {
 
 run().catch(console.dir);
 
+
+//Default API
 app.get('/', (req, res) => {
     res.send('Hello from Doctors portal!')
 });
