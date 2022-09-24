@@ -241,7 +241,7 @@ async function run() {
         });
 
         //GET DOCTORS
-        app.get('/doctor', verifyJWT, verifyAdmin, async (req, res) => {
+        app.get('/doctor', async (req, res) => {
             const doctors = await doctorsCollection.find().toArray();
             res.send(doctors);
         });
