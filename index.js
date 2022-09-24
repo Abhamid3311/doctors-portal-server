@@ -5,8 +5,6 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
-
-
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -69,8 +67,8 @@ async function run() {
                 payment_method_types: ['card']
             });
             res.send({ clientSecret: paymentIntent.client_secret });
-
         });
+
 
         //GET SERVICES
         app.get('/service', async (req, res) => {
@@ -83,13 +81,13 @@ async function run() {
 
 
         //Get Reviews
-        app.get('/review', verifyJWT, async (req, res) => {
+        app.get('/review', async (req, res) => {
             const query = {};
             const cursor = reviewCollection.find(query);
             const reviews = await cursor.toArray();
             res.send(reviews);
         });
-        
+
         //Post Review
         app.post('/review', verifyJWT, async (req, res) => {
             const review = req.body;
@@ -275,12 +273,3 @@ app.listen(port, () => {
 });
 
 
-/**
-         * API Naming Convention
-         * app.get('/booking') //get all boking of this collection or get more than one or get by filter query.
-         * app.get('/booking/:id') //get a specific booking.
-         *  app.post('/booking/:id') // add a booking.
-         *  app.patch('/booking/:id') //update a booking.
-         *  app.put('/booking/:id') //Upsert=> update(if exist)+ insert(if doesn't exist)
-         *  app.delete('/booking/:id') // delete a api.
-         **/
